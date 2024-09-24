@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cricket</title>
+  <link rel="stylesheet" href="Style/Cricket.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+  <div class="main">
+    <img id="stadium" src="imgs/stadium.jpg" alt="Stadium">
+    <header>
+      <h1 style="color: rgb(46, 27, 143);">Cricket Game !!!</h1>
+    </header>
+    <div class="container">
+      <button id="bat" onclick="comp=generateComp(); resultWon('bat', comp)">
+        <img src="imgs/bat.jpeg" height="100%" width="100%" alt="Bat">
+        <div class="Bat" style="margin-left: 50px;"><b>bat</b></div>
+      </button>
+      <button id="ball" onclick="comp=generateComp(); resultWon('ball', comp)">
+        <img src="imgs/ball.jpeg" height="100%" width="100%" alt="Ball">
+        <b>ball</b>
+      </button>
+      <button id="stump" onclick="comp=generateComp(); resultWon('stump', comp)">
+        <img src="imgs/stmp.jpeg" height="100%" width="100%" alt="Stump">
+        <b>stump</b>
+      </button>
+      <br>
+    </div>
+    <div class="reset">
+      <button id="reset" onclick="Reset();alert('reset performed')">Reset</button>
+    </div>
+  </div>
+
+  <script>
+    let score = JSON.parse(localStorage.getItem('storedscore')) || {
+      win: 0,
+      loss: 0,
+      tie: 0,
+    };
+
+    function showScore() {
+      return `win: ${score.win}, loss: ${score.loss}, tie: ${score.tie}`;
+    }
+
+    function Reset() {
+      score.win = score.loss = score.tie = 0;
+      localStorage.setItem('storedscore', JSON.stringify(score));
+    }
+
+    function generateComp() {
+      let randValue = Math.random() * 3;
+      return Compchoice(randValue);
+    }
+
+    function Compchoice(value) {
+      if (value < 1) return 'bat';
+      else if (value < 2) return 'ball';
+      else return 'stump';
+    }
+
+    function showAlert(title, text, icon, timer, imageUrl) {
+      localStorage.setItem('storedscore', JSON.stringify(score));
+      Swal.fire({
+        title: title,
+        text: text,
+        icon: icon,
+        showConfirmButton: false,
+        timer: timer,
+        imageUrl: imageUrl,
+        imageWidth: 125,
+        imageHeight: 125,
+      });
+    }
+
+    function resultWon(mychoice, generated_choice) {
+      if (mychoice === generated_choice) {
+        score.tie++;
+        showAlert(
+          'It\'s a Tie!',
+          'Both choose ' + mychoice + "\t[" + showScore() + "]",
+          'info',
+          3000,
+          'imgs/tie.jpeg'
+        );
+      } else if (mychoice === 'bat') {
+        if (generated_choice === 'ball') {
+          score.win++;
+          showAlert(
+            'You Won!',
+            'Computer choose ' + generated_choice + "\n[" + showScore() + "]",
+            'success',
+            3000,
+            'https://www.bing.com/th/id/OGC.bfa24948ad0383b3c9023ff6911b72b9?pid=1.7&rurl=https%3a%2f%2fc.tenor.com%2fXE54_RjNUsMAAAAC%2fwinner-winning.gif&ehk=YMsYtbmfvUi3RCx7llXlUVcgDBfTbWu63%2bxQVbHewmY%3d'
+          );
+        } else if (generated_choice === 'stump') {
+          score.loss++;
+          showAlert(
+            'Computer Wins!',
+            'Computer choose ' + generated_choice + "\n[" + showScore() + "]",
+            'error',
+            3000,
+            'https://th.bing.com/th?id=OIP.s-HqDrC_wQy_4_KBGFEdLwAAAA&w=212&h=294&c=8&rs=1&qlt=90&o=6&dpr=1.8&pid=3.1&rm=2'
+          );
+        }
+      } else if (mychoice === 'ball') {
+        if (generated_choice === 'stump') {
+          score.win++;
+          showAlert(
+            'You Won!',
+            'Computer choose ' + generated_choice + "\n[" + showScore() + "]",
+            'success',
+            3000,
+            'https://www.bing.com/th/id/OGC.bfa24948ad0383b3c9023ff6911b72b9?pid=1.7&rurl=https%3a%2f%2fc.tenor.com%2fXE54_RjNUsMAAAAC%2fwinner-winning.gif&ehk=YMsYtbmfvUi3RCx7llXlUVcgDBfTbWu63%2bxQVbHewmY%3d'
+          );
+        } else if (generated_choice === 'bat') {
+          score.loss++;
+          showAlert(
+            'Computer Wins!',
+            'Computer choose ' + generated_choice + "\n[" + showScore() + "]",
+            'error',
+            3000,
+            'https://th.bing.com/th?id=OIP.s-HqDrC_wQy_4_KBGFEdLwAAAA&w=212&h=294&c=8&rs=1&qlt=90&o=6&dpr=1.8&pid=3.1&rm=2'
+          );
+        }
+      } else if (mychoice === 'stump') {
+        if (generated_choice === 'bat') {
+          score.win++;
+          showAlert(
+            'You Won!',
+            'Computer choose ' + generated_choice + "\n[" + showScore() + "]",
+            'success',
+            3000,
+            'https://www.bing.com/th/id/OGC.bfa24948ad0383b3c9023ff6911b72b9?pid=1.7&rurl=https%3a%2f%2fc.tenor.com%2fXE54_RjNUsMAAAAC%2fwinner-winning.gif&ehk=YMsYtbmfvUi3RCx7llXlUVcgDBfTbWu63%2bxQVbHewmY%3d'
+          );
+        } else if (generated_choice === 'ball') {
+          score.loss++;
+          showAlert(
+            'Computer Wins!',
+            'Computer choose ' + generated_choice + "\n[" + showScore() + "]",
+            'error',
+            3000,
+            'https://th.bing.com/th?id=OIP.s-HqDrC_wQy_4_KBGFEdLwAAAA&w=212&h=294&c=8&rs=1&qlt=90&o=6&dpr=1.8&pid=3.1&rm=2'
+          );
+        }
+      }
+    }
+  </script>
+</body>
+</html>
