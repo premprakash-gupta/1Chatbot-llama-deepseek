@@ -1,0 +1,443 @@
+<!doctype html>
+<!DOCTYPE html>
+<html lang="en">
+<!-- to run: cd "c:\Users\premp\Desktop\LLM models\DeepseekChatbot" && node server.js -->
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title> Chatbot — Simple UI</title>
+
+  <style>
+    :root {
+      --bg-accent: rgba(4, 11, 28, 0.55);
+      --card: rgba(255, 255, 255, 0.06);
+      --glass: rgba(255, 255, 255, 0.06);
+      --muted: rgba(255, 255, 255, 0.7);
+      --accent: #6ee7b7;
+      --accent-2: #60a5fa;
+      --radius: 14px;
+      --max-width: 820px;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      color: #e6eef8;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* full-screen modern background */
+    body {
+      background-image:
+        linear-gradient(180deg, rgba(2, 6, 23, 0.55), rgba(2, 6, 23, 0.6)),
+        url("https://images.unsplash.com/photo-1526378725742-04a0d7a3c7f7?q=80&w=1600&auto=format&fit=crop&ixlib=rb-4.0.3&s=3d8f4a6d5f6f5b2a8f2f2b1f8d7a2c6a");
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px;
+      box-sizing: border-box;
+      gap: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: var(--max-width);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.02));
+      border-radius: var(--radius);
+      box-shadow: 0 10px 40px rgba(2, 6, 23, 0.6);
+      overflow: hidden;
+      /* backdrop-filter: blur(6px) saturate(120%); */
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 18px 22px;
+      background: linear-gradient(90deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+    }
+
+    .logo {
+      width: 46px;
+      height: 46px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: #04202a;
+      box-shadow: 0 6px 18px rgba(96, 165, 250, 0.12);
+      flex: 0 0 46px;
+    }
+
+    .title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .subtitle {
+      font-size: 12px;
+      color: rgba(230, 238, 248, 0.8);
+      font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    main {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      padding: 24px;
+      box-sizing: border-box;
+      gap: 20px;
+    }
+
+    .input-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .input-area:has(input:focus) {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(110, 231, 183, 0.3);
+    }
+
+    input {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      outline: none;
+      background: transparent;
+      color: #e6eef8;
+      font-size: 16px;
+      font-weight: 500;
+      border-radius: var(--radius);
+    }
+
+    button {
+      padding: 10px 16px;
+      border: none;
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #04202a;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: linear-gradient(135deg, var(--accent-2), var(--accent));
+    }
+
+    .chat {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow-y: auto;
+      padding: 12px;
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .message {
+      display: flex;
+      flex-direction: column;
+      padding: 12px;
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.04);
+      position: relative;
+      max-width: 80%;
+    }
+
+    .message:has(.avatar) {
+      padding-left: 56px;
+    }
+
+    .message:has(.avatar) .text {
+      margin-left: 8px;
+    }
+
+    .message.sent {
+      align-self: flex-end;
+      background: linear-gradient(135deg, rgba(110, 231, 183, 0.1), rgba(110, 231, 183, 0.05));
+    }
+
+    .message.received {
+      align-self: flex-start;
+      background: linear-gradient(135deg, rgba(96, 165, 250, 0.1), rgba(96, 165, 250, 0.05));
+    }
+
+    .message .text {
+      color: #e6eef8;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .message .timestamp {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      font-size: 12px;
+      color: rgba(230, 238, 248, 0.6);
+    }
+
+    .avatar {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .avatar img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    @media (max-width:640px) {
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .title {
+        font-size: 16px;
+      }
+
+      .subtitle {
+        font-size: 11px;
+      }
+
+      .input-area {
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      input {
+        font-size: 14px;
+      }
+
+      button {
+        width: 100%;
+        font-size: 16px;
+      }
+
+      .chat {
+        padding: 8px;
+      }
+
+      .message {
+        padding: 10px;
+        font-size: 14px;
+      }
+
+      .message .timestamp {
+        font-size: 11px;
+      }
+
+      .avatar {
+        width: 28px;
+        height: 28px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">DS</div>
+      <div>
+        <div class="title">Chatbot</div>
+        <div class="subtitle">AI-Powered Assistance</div>
+      </div>
+    </div>
+    <main>
+      <div class="chat" id="chat">
+        <!-- Messages will be appended here -->
+      </div>
+      <div class="input-area">
+        <input type="text" id="userInput" placeholder="Type your message here..." />
+        <button id="sendButton">Send</button>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const chat = document.getElementById('chat');
+    const userInput = document.getElementById('userInput');
+    const sendButton = document.getElementById('sendButton');
+
+    function appendMessage(content, sender = 'user') {
+      const messageElement = document.createElement('div');
+      messageElement.classList.add('message', sender === 'sent' ? 'sent' : 'received');
+
+      const textElement = document.createElement('div');
+      textElement.classList.add('text');
+      textElement.innerText = content;
+
+      const timestampElement = document.createElement('div');
+      timestampElement.classList.add('timestamp');
+      timestampElement.innerText = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      messageElement.appendChild(textElement);
+      messageElement.appendChild(timestampElement);
+
+      chat.appendChild(messageElement);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function appendStatus(text) {
+      const statusElement = document.createElement('div');
+      statusElement.style.textAlign = 'center';
+      statusElement.style.color = '#888';
+      statusElement.style.fontStyle = 'italic';
+      statusElement.style.padding = '10px';
+      statusElement.innerText = text;
+      chat.appendChild(statusElement);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function removeStatus() {
+      const statusElements = chat.querySelectorAll('div[style*="text-align: center"]');
+      statusElements.forEach(el => el.remove());
+    }
+
+    async function callProxyWithRetry(payload, maxRetries = 3) {
+      let attempt = 0;
+      let delay = 1000;
+
+      while (attempt <= maxRetries) {
+        try {
+          const res = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          if (res.status === 429 && attempt < maxRetries) {
+            // Rate limited, wait and retry
+            appendStatus(`Rate limited. Retrying in ${delay / 1000} seconds...`);
+            await new Promise(r => setTimeout(r, delay));
+            delay *= 2;
+            attempt++;
+            continue;
+          }
+
+          return res;
+        } catch (error) {
+          if (attempt < maxRetries) {
+            appendStatus(`Network error. Retrying in ${delay / 1000} seconds...`);
+            await new Promise(r => setTimeout(r, delay));
+            delay *= 2;
+            attempt++;
+            continue;
+          }
+          throw error;
+        }
+      }
+      throw new Error('Too many requests (retries exhausted)');
+    }
+
+    async function tryMultipleModels(text) {
+      const models = [
+        "meta-llama/llama-3.2-3b-instruct:free",
+        "microsoft/phi-3-mini-128k-instruct:free",
+        "google/gemma-2-9b-it:free",
+        "huggingface/zephyr-7b-beta:free"
+      ];
+
+      for (let i = 0; i < models.length; i++) {
+        try {
+          appendStatus(`Trying ${models[i]}...`);
+          const payload = {
+            model: models[i],
+            messages: [{ role: "user", content: text }]
+          };
+
+          const response = await callProxyWithRetry(payload, 2);
+
+          if (response.ok) {
+            return response;
+          } else if (response.status === 429 && i < models.length - 1) {
+            appendStatus(`Model ${models[i]} is rate limited. Trying next model...`);
+            continue;
+          } else {
+            throw new Error(`HTTP ${response.status}`);
+          }
+        } catch (error) {
+          if (i < models.length - 1) {
+            appendStatus(`Model ${models[i]} failed. Trying next model...`);
+            continue;
+          } else {
+            throw error;
+          }
+        }
+      }
+      throw new Error('All models failed');
+    }
+
+    sendButton.addEventListener('click', async () => {
+      const text = userInput.value.trim();
+      if (!text) {
+        appendStatus('Please enter a message.');
+        return;
+      }
+
+      appendMessage(text, 'sent');
+      userInput.value = '';
+      appendStatus('Bot is typing...');
+
+      try {
+        const response = await tryMultipleModels(text);
+
+        removeStatus(); // Remove "Bot is typing..." message
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('API Error:', response.status, errorText);
+          appendMessage(`Error: ${response.status} - ${response.statusText}. Please try again.`, 'received');
+          return;
+        }
+
+        const data = await response.json();
+        console.log('API Response:', data);
+
+        const markdownText = data.choices?.[0]?.message?.content || "Sorry, I couldn't get a response.";
+        appendMessage(markdownText, 'received');
+
+      } catch (error) {
+        removeStatus();
+        appendMessage('Error fetching response. Please try again later.', 'received');
+        console.error('Error:', error);
+      }
+    });
+
+    userInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        sendButton.click();
+      }
+    });
+  </script>
+</body>
+
+</html>
